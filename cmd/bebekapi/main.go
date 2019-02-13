@@ -1,14 +1,12 @@
 package main
 
 import (
-	"net/http"
-
-	"go.uber.org/zap"
-
 	"database/sql"
+	"net/http"
 
 	_ "github.com/go-sql-driver/mysql"
 	"github.com/julienschmidt/httprouter"
+	"go.uber.org/zap"
 )
 
 func main() {
