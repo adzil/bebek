@@ -2,12 +2,14 @@ package bebek
 
 import "time"
 
+// Room represents the room information.
 type Room struct {
 	RoomID   string `json:"room_id"`
 	Name     string `json:"name"`
 	Location string `json:"location"`
 }
 
+// Booking represents the booking information.
 type Booking struct {
 	BookingID  string    `json:"booking_id"`
 	RoomID     string    `json:"-"`
@@ -17,6 +19,7 @@ type Booking struct {
 	ReservedBy string    `json:"reserved_by"`
 }
 
+// Reservation represents the room and booking information.
 type Reservation struct {
 	*Room
 	Booking []*Booking `json:"slots"`
