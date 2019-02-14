@@ -1,11 +1,9 @@
 package bebek
 
-import "time"
-
 // GetReservationsRequest represents the GetReservations request data.
 type GetReservationsRequest struct {
 	RoomID string
-	Date   time.Time
+	Date   Date
 }
 
 // GetSelfReservationsRequest represents the GetSelfReservations request data.
@@ -15,8 +13,8 @@ type GetSelfReservationsRequest struct {
 
 // CreateBookingRequest represents the CreateBooking request data.
 type CreateBookingRequest struct {
-	RoomID string
-	Date   time.Time
+	RoomID string `json:"room_id"`
+	Date   Date
 	Start  int
 	End    int
 	Actor  string
