@@ -62,27 +62,3 @@ func (d *Date) MarshalJSON() ([]byte, error) {
 func (d *Date) IsSet() bool {
 	return d.UnixNano() != nilTime
 }
-
-// UnmarshalJSON decode Date as JSON
-func (d *Date) UnmarshalJSON(b []byte) (err error) {
-	s := strings.Trim(string(b), "\"")
-	if s == "null" {
-		d.Time = time.Time{}
-		return
-	}
-	d.Time, err = time.Parse(DateLayout, s)
-	return
-}
-
-// MarshalJSON encode Date to JSON
-func (d *Date) MarshalJSON() ([]byte, error) {
-	if d.Time.UnixNano() == nilTime {
-		return []byte("null"), nil
-	}
-	return []byte(fmt.Sprintf("\"%s\"", d.Time.Format(DateLayout))), nil
-}
-
-// IsSet check whether is value of Date has been set
-func (d *Date) IsSet() bool {
-	return d.UnixNano() != nilTime
-}
