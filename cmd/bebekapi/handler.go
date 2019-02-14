@@ -5,6 +5,8 @@ import (
 	"net/http"
 	"time"
 
+	"go.uber.org/zap"
+
 	"github.com/bukalapak/apinizer/response"
 
 	"github.com/adzil/bebek"
@@ -14,6 +16,7 @@ import (
 
 // Handler is the room booking HTTP handler.
 type Handler struct {
+	Logger  *zap.Logger
 	Service bebek.Service
 }
 
@@ -27,6 +30,7 @@ type ArrayMeta struct {
 func (h *Handler) GetRooms(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
 	rooms, err := h.Service.GetRooms()
 	if err != nil {
+		h.Logger.Error("get rooms", zap.Error(err))
 		writeResponseError(w, err)
 	} else {
 		meta := newArrayMeta(len(rooms))
@@ -39,11 +43,13 @@ func (h *Handler) GetRooms(w http.ResponseWriter, r *http.Request, _ httprouter.
 func (h *Handler) GetBookings(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
 	req, errResp := getReversationRequestFromQuery(r)
 	if errResp != nil {
+		h.Logger.Error("get reservation request from query", zap.Error(errResp))
 		response.Write(w, errResp, http.StatusBadRequest)
 		return
 	}
 	resv, err := h.Service.GetReservations(*req)
 	if err != nil {
+		h.Logger.Error("get reservations", zap.Error(err))
 		writeResponseError(w, err)
 	} else {
 		meta := newArrayMeta(len(resv))
@@ -56,11 +62,19 @@ func (h *Handler) GetBookings(w http.ResponseWriter, r *http.Request, _ httprout
 func (h *Handler) PostBooking(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
 	bookingReq, errResp := createBookingRequestFromBody(r)
 	if errResp != nil {
+		h.Logger.Error("create booking request from body", zap.Error(errResp))
+		response.Write(w, errResp, http.StatusBadRequest)
+		return
+	}
+	if valid := validateCreateBookingRequest(bookingReq); !valid {
+		errResp := buildErrorResponse("body", "POST body is invalid")
+		h.Logger.Error("validate create booking request", zap.Error(errResp))
 		response.Write(w, errResp, http.StatusBadRequest)
 		return
 	}
 	bookingID, err := h.Service.CreateBooking(*bookingReq)
 	if err != nil {
+		h.Logger.Error("create booking", zap.Error(err))
 		writeResponseError(w, err)
 		return
 	}
@@ -84,6 +98,7 @@ func (h *Handler) DeleteBooking(w http.ResponseWriter, r *http.Request, params h
 	actor := r.Header.Get("X-Telegram-User")
 	if actor == "" {
 		errResp := buildErrorResponse("header", "User is not set")
+		h.Logger.Error("get user header", zap.Error(errResp))
 		response.Write(w, errResp, http.StatusBadRequest)
 		return
 	}
@@ -93,6 +108,7 @@ func (h *Handler) DeleteBooking(w http.ResponseWriter, r *http.Request, params h
 	}
 	err := h.Service.DeleteBooking(req)
 	if err != nil {
+		h.Logger.Error("delete booking", zap.Error(err))
 		writeResponseError(w, err)
 		return
 	}
@@ -110,6 +126,7 @@ func (h *Handler) GetSelfBookings(w http.ResponseWriter, r *http.Request, _ http
 	actor := r.Header.Get("X-Telegram-User")
 	if actor == "" {
 		errResp := buildErrorResponse("header", "User is not set")
+		h.Logger.Error("get user header", zap.Error(errResp))
 		response.Write(w, errResp, http.StatusBadRequest)
 		return
 	}
@@ -118,6 +135,7 @@ func (h *Handler) GetSelfBookings(w http.ResponseWriter, r *http.Request, _ http
 	}
 	resv, err := h.Service.GetSelfReservations(req)
 	if err != nil {
+		h.Logger.Error("create booking", zap.Error(err))
 		writeResponseError(w, err)
 		return
 	}
@@ -143,10 +161,6 @@ func createBookingRequestFromBody(r *http.Request) (*bebek.CreateBookingRequest,
 	err := json.NewDecoder(r.Body).Decode(&bookingReq)
 	if err != nil {
 		errResp := buildErrorResponse("body", err.Error())
-		return nil, &errResp
-	}
-	if valid := validateCreateBookingRequest(bookingReq); !valid {
-		errResp := buildErrorResponse("body", "POST body is invalid")
 		return nil, &errResp
 	}
 	actor := r.Header.Get("X-Telegram-User")
@@ -184,7 +198,7 @@ func newArrayMeta(length int) *ArrayMeta {
 	}
 }
 
-func validateCreateBookingRequest(req bebek.CreateBookingRequest) bool {
+func validateCreateBookingRequest(req *bebek.CreateBookingRequest) bool {
 	if req.RoomID == "" {
 		return false
 	}
