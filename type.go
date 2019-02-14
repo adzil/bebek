@@ -22,5 +22,5 @@ type Booking struct {
 // Reservation represents the room and booking information.
 type Reservation struct {
 	*Room
-	Booking []*Booking `json:"slots"`
+	Bookings []*Booking `json:"bookings"`
 }
