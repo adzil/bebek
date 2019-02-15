@@ -2,6 +2,7 @@ package bebek
 
 import (
 	"database/sql"
+	"errors"
 	"time"
 )
 
@@ -17,6 +18,9 @@ type GetBookingsRequest struct {
 type Repository interface {
 	// GetRooms returns all available room.
 	GetRooms() ([]*Room, error)
+
+	// GetRoom return Room by their ID
+	GetRoom(roomID string) (*Room, error)
 
 	// GetBookings returns all booking that matches the request filter.
 	GetBookings(GetBookingsRequest) ([]*Booking, error)
@@ -56,14 +60,38 @@ func (r *MySQLRepository) GetRooms() ([]*Room, error) {
 	return results, nil
 }
 
+func (r *MySQLRepository) GetRoom(roomID string) (*Room, error) {
+	rows, err := r.DB.Query("SELECT `a`.`room_id`, `a`.`name`, `a`.`location` FROM room AS a WHERE `a`.`room_id` = ?", roomID)
+	if err != nil {
+		return nil, err
+	}
+
+	defer rows.Close()
+
+	room := &Room{}
+	if !rows.Next() {
+		return nil, errors.New("Unable to find Room with ID: " + roomID)
+	}
+
+	if err = rows.Scan(&room.RoomID, &room.Name, &room.Location); err != nil {
+		return nil, err
+	}
+
+	return room, nil
+}
+
 func (r *MySQLRepository) GetBookings(req GetBookingsRequest) ([]*Booking, error) {
 	query := "SELECT `a`.`booking_id`, `a`.`room_id`, `a`.`date`, `a`.`slot`, `a`.`reserved_by` FROM booking AS a "
+	args := []interface{}{req.Date}
 	if req.StartFrom {
-		query += "WHERE `a`.`reserved_by` = ? AND `a`.`date` >= DATE(?) "
+		query += "WHERE `a`.`date` >= DATE(?) "
 	} else {
-		query += "WHERE `a`.`reserved_by` = ? AND `a`.`date` = DATE(?) "
+		query += "WHERE `a`.`date` = DATE(?) "
 	}
-	args := []interface{}{req.ReservedBy, req.Date}
+	if req.ReservedBy != "" {
+		query += "AND `a`.`reserved_by` = ? "
+		args = append(args, req.ReservedBy)
+	}
 	if req.RoomID != "" {
 		query += "AND a.room_id = ? "
 		args = append(args, req.RoomID)
