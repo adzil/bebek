@@ -183,7 +183,7 @@ func (r *MySQLRepository) CreateBooking(booking *Booking) error {
 	}
 
 	for i := booking.Start; i <= booking.End; i++ {
-		_, err := tx.Exec("INSERT INTO booking(`room_id`, `date`, `slot`, `booking_id`, `reserved_by`) VALUES(?, ?, ?, ?, ?)", booking.RoomID, booking.Date, i, booking.BookingID, booking.ReservedBy)
+		_, err := tx.Exec("INSERT INTO booking(`room_id`, `date`, `slot`, `booking_id`, `reserved_by`) VALUES(?, ?, ?, ?, ?)", booking.RoomID, booking.Date.Time, i, booking.BookingID, booking.ReservedBy)
 		if err != nil {
 			tx.Rollback()
 			return err
