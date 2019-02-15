@@ -140,6 +140,7 @@ func (s *Bebek) CreateBooking(req CreateBookingRequest) (string, error) {
 		Start:      req.Start,
 		End:        req.End,
 		ReservedBy: req.Actor,
+		RoomID:     req.RoomID,
 	}); err != nil {
 		return "", err
 	}
