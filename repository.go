@@ -142,7 +142,7 @@ func (r *MySQLRepository) GetBookings(req GetBookingsRequest) ([]*Booking, error
 }
 
 func (r *MySQLRepository) GetBooking(bookingID string) (*Booking, error) {
-	rows, err := r.DB.Query("SELECT `a`.`room_id`, `a`.`date`, `a`.`slot` FROM booking AS a WHERE `a`.`booking_id` = ? ORDER BY `a`.`slot`", bookingID)
+	rows, err := r.DB.Query("SELECT `a`.`room_id`, `a`.`date`, `a`.`slot`, `a`.`reserved_by` FROM booking AS a WHERE `a`.`booking_id` = ? ORDER BY `a`.`slot`", bookingID)
 	if err != nil {
 		return nil, err
 	}
@@ -152,21 +152,23 @@ func (r *MySQLRepository) GetBooking(bookingID string) (*Booking, error) {
 	var booking *Booking
 	for rows.Next() {
 		var (
-			roomID string
-			date   time.Time
-			slot   int
+			roomID     string
+			date       time.Time
+			slot       int
+			reservedBy string
 		)
 
-		if err := rows.Scan(&roomID, &date, &slot); err != nil {
+		if err := rows.Scan(&roomID, &date, &slot, &reservedBy); err != nil {
 			return nil, err
 		}
 
 		if booking == nil {
 			booking = &Booking{
-				BookingID: bookingID,
-				RoomID:    roomID,
-				Date:      Date{date},
-				Start:     slot,
+				BookingID:  bookingID,
+				RoomID:     roomID,
+				Date:       Date{date},
+				Start:      slot,
+				ReservedBy: reservedBy,
 			}
 		}
 
