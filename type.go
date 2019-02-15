@@ -1,15 +1,11 @@
 package bebek
 
 import (
-	"fmt"
-	"strings"
 	"time"
 )
 
 // DateLayout is time format used for parsing date string
 const DateLayout = "020106"
-
-var nilTime = (time.Time{}).UnixNano()
 
 // Date is time.Time which layout using DateLayout
 type Date struct {
@@ -39,26 +35,17 @@ type Reservation struct {
 	Bookings []*Booking `json:"bookings"`
 }
 
-// UnmarshalJSON decode Date as JSON
-func (d *Date) UnmarshalJSON(b []byte) (err error) {
-	s := strings.Trim(string(b), "\"")
-	if s == "null" {
-		d.Time = time.Time{}
-		return
-	}
-	d.Time, err = time.Parse(DateLayout, s)
-	return
+// UnmarshalText decode date string into date.
+func (d *Date) UnmarshalText(b []byte) error {
+	var err error
+	d.Time, err = time.Parse(DateLayout, string(b))
+	return err
 }
 
-// MarshalJSON encode Date to JSON
-func (d *Date) MarshalJSON() ([]byte, error) {
-	if d.Time.UnixNano() == nilTime {
-		return []byte("null"), nil
+// MarshalText encode date into string.
+func (d *Date) MarshalText() ([]byte, error) {
+	if d.IsZero() {
+		return []byte{}, nil
 	}
-	return []byte(fmt.Sprintf("\"%s\"", d.Time.Format(DateLayout))), nil
-}
-
-// IsSet check whether is value of Date has been set
-func (d *Date) IsSet() bool {
-	return d.UnixNano() != nilTime
+	return []byte(d.Time.Format(DateLayout)), nil
 }

@@ -86,7 +86,7 @@ func buildReservations(rooms []*Room, bookings []*Booking) []*Reservation {
 // GetReservations returns all reservations with optional filter.
 func (s *Bebek) GetReservations(req GetReservationsRequest) ([]*Reservation, error) {
 	if req.Date.IsZero() {
-		req.Date = time.Now()
+		req.Date = Date{time.Now()}
 	}
 	rooms, err := s.Repository.GetRooms()
 	if err != nil {
@@ -94,7 +94,7 @@ func (s *Bebek) GetReservations(req GetReservationsRequest) ([]*Reservation, err
 	}
 	bookings, err := s.Repository.GetBookings(GetBookingsRequest{
 		RoomID: req.RoomID,
-		Date:   req.Date,
+		Date:   req.Date.Time,
 	})
 	if err != nil {
 		return nil, err

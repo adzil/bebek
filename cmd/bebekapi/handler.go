@@ -5,13 +5,10 @@ import (
 	"net/http"
 	"time"
 
-	"go.uber.org/zap"
-
-	"github.com/bukalapak/apinizer/response"
-
 	"github.com/adzil/bebek"
-
+	"github.com/bukalapak/apinizer/response"
 	"github.com/julienschmidt/httprouter"
+	"go.uber.org/zap"
 )
 
 // Handler is the room booking HTTP handler.
@@ -186,7 +183,7 @@ func getReversationRequestFromQuery(r *http.Request) (*bebek.GetReservationsRequ
 		}
 	}
 	return &bebek.GetReservationsRequest{
-		Date:   date,
+		Date:   bebek.Date{Time: date},
 		RoomID: roomID,
 	}, nil
 }

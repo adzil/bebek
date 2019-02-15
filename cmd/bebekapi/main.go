@@ -3,8 +3,11 @@ package main
 import (
 	"database/sql"
 	"net/http"
+	"os"
 
+	"github.com/adzil/bebek"
 	_ "github.com/go-sql-driver/mysql"
+	_ "github.com/joho/godotenv/autoload"
 	"github.com/julienschmidt/httprouter"
 	"go.uber.org/zap"
 )
@@ -12,17 +15,23 @@ import (
 func main() {
 	logger, _ := zap.NewProduction()
 
-	db, err := sql.Open("mysql", "user:password@/dbname")
+	db, err := sql.Open("mysql", os.Getenv("MYSQL_DSN"))
 	if err != nil {
 		logger.Panic("open database", zap.Error(err))
 	}
 
-	_ = db
-
-	handler := &Handler{}
+	repository := &bebek.MySQLRepository{
+		DB: db,
+	}
+	service := &bebek.Bebek{
+		Repository: repository,
+	}
+	handler := &Handler{
+		Service: service,
+		Logger:  logger,
+	}
 
 	router := httprouter.New()
-
 	router.GET("/rooms", handler.GetRooms)
 	router.GET("/bookings", handler.GetBookings)
 	router.POST("/bookings", handler.PostBooking)

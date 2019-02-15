@@ -98,7 +98,7 @@ func (r *MySQLRepository) GetBookings(req GetBookingsRequest) ([]*Booking, error
 			booking = &Booking{
 				BookingID:  bookingID,
 				RoomID:     roomID,
-				Date:       date,
+				Date:       Date{date},
 				Start:      slot,
 				ReservedBy: reservedBy,
 			}
@@ -137,7 +137,7 @@ func (r *MySQLRepository) GetBooking(bookingID string) (*Booking, error) {
 			booking = &Booking{
 				BookingID: bookingID,
 				RoomID:    roomID,
-				Date:      date,
+				Date:      Date{date},
 				Start:     slot,
 			}
 		}
