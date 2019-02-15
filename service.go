@@ -20,10 +20,10 @@ type GetSelfReservationsRequest struct {
 // CreateBookingRequest represents the CreateBooking request data.
 type CreateBookingRequest struct {
 	RoomID string `json:"room_id"`
-	Date   Date
-	Start  int
-	End    int
-	Actor  string
+	Date   Date   `json:"date"`
+	Start  int    `json:"start"`
+	End    int    `json:"end"`
+	Actor  string `json:"-"`
 }
 
 // DeleteBookingRequest represents the DeleteBooking request data.
