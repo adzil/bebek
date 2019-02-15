@@ -88,7 +88,16 @@ func (s *Bebek) GetReservations(req GetReservationsRequest) ([]*Reservation, err
 	if req.Date.IsZero() {
 		req.Date = Date{time.Now()}
 	}
-	rooms, err := s.Repository.GetRooms()
+	var rooms []*Room
+	var err error
+	if req.RoomID != "" {
+		var room *Room
+		if room, err = s.Repository.GetRoom(req.RoomID); err == nil {
+			rooms = []*Room{room}
+		}
+	} else {
+		rooms, err = s.Repository.GetRooms()
+	}
 	if err != nil {
 		return nil, err
 	}
