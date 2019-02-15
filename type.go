@@ -1,6 +1,8 @@
 package bebek
 
 import (
+	"fmt"
+	"strings"
 	"time"
 )
 
@@ -48,4 +50,23 @@ func (d *Date) MarshalText() ([]byte, error) {
 		return []byte{}, nil
 	}
 	return []byte(d.Time.Format(DateLayout)), nil
+}
+
+// UnmarshalJSON decode Date as JSON
+func (d *Date) UnmarshalJSON(b []byte) (err error) {
+	s := strings.Trim(string(b), "\"")
+	if s == "null" {
+		d.Time = time.Time{}
+		return
+	}
+	d.Time, err = time.Parse(DateLayout, s)
+	return
+}
+
+// MarshalJSON encode Date to JSON
+func (d *Date) MarshalJSON() ([]byte, error) {
+	if d.IsZero() {
+		return []byte("null"), nil
+	}
+	return []byte(fmt.Sprintf("\"%s\"", d.Time.Format(DateLayout))), nil
 }
