@@ -140,7 +140,7 @@ func (h *Handler) GetSelfBookings(w http.ResponseWriter, r *http.Request, _ http
 		return
 	}
 	meta := newArrayMeta(len(resv))
-	sucResp := response.BuildSuccess(nil, "Delete Booking successful", meta)
+	sucResp := response.BuildSuccess(resv, "", meta)
 	response.Write(w, sucResp, http.StatusOK)
 }
 
@@ -186,7 +186,7 @@ func getReversationRequestFromQuery(r *http.Request) (*bebek.GetReservationsRequ
 		}
 	}
 	return &bebek.GetReservationsRequest{
-		Date:   bebek.Date{Time: date},
+		Date:   date,
 		RoomID: roomID,
 	}, nil
 }
