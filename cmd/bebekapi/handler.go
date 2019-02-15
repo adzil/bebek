@@ -25,6 +25,8 @@ type ArrayMeta struct {
 
 // GetRooms serves GET /rooms endpoint.
 func (h *Handler) GetRooms(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
+	disableCache(w)
+
 	rooms, err := h.Service.GetRooms()
 	if err != nil {
 		h.Logger.Error("get rooms", zap.Error(err))
@@ -38,6 +40,8 @@ func (h *Handler) GetRooms(w http.ResponseWriter, r *http.Request, _ httprouter.
 
 // GetBookings serves GET /bookings endpoint.
 func (h *Handler) GetBookings(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
+	disableCache(w)
+
 	req, errResp := getReversationRequestFromQuery(r)
 	if errResp != nil {
 		h.Logger.Error("get reservation request from query", zap.Error(errResp))
@@ -51,12 +55,15 @@ func (h *Handler) GetBookings(w http.ResponseWriter, r *http.Request, _ httprout
 	} else {
 		meta := newArrayMeta(len(resv))
 		sucResp := response.BuildSuccess(resv, "", meta)
+
 		response.Write(w, sucResp, http.StatusOK)
 	}
 }
 
 // PostBooking serves POST /bookings endpoint.
 func (h *Handler) PostBooking(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
+	disableCache(w)
+
 	bookingReq, errResp := createBookingRequestFromBody(r)
 	if errResp != nil {
 		h.Logger.Error("create booking request from body", zap.Error(errResp))
@@ -91,6 +98,8 @@ func (h *Handler) PostBooking(w http.ResponseWriter, r *http.Request, _ httprout
 
 // DeleteBooking serves DELETE /bookings endpoint.
 func (h *Handler) DeleteBooking(w http.ResponseWriter, r *http.Request, params httprouter.Params) {
+	disableCache(w)
+
 	bookingID := params.ByName("id")
 	actor := r.Header.Get("X-Telegram-User")
 	if actor == "" {
@@ -120,6 +129,8 @@ func (h *Handler) DeleteBooking(w http.ResponseWriter, r *http.Request, params h
 
 // GetSelfBookings serves GET /self/bookings endpoint.
 func (h *Handler) GetSelfBookings(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
+	disableCache(w)
+
 	actor := r.Header.Get("X-Telegram-User")
 	if actor == "" {
 		errResp := buildErrorResponse("header", "User is not set")
@@ -212,4 +223,11 @@ func validateCreateBookingRequest(req *bebek.CreateBookingRequest) bool {
 func writeResponseError(w http.ResponseWriter, err error) {
 	errResp := response.BuildError(err)
 	response.Write(w, errResp, http.StatusInternalServerError)
+}
+
+func disableCache(w http.ResponseWriter) {
+	header := w.Header()
+	header.Add("Cache-Control", "no-cache, no-store, must-revalidate")
+	header.Add("Pragma", "no-cache")
+	header.Add("Expires", "0")
 }
